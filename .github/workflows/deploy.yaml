@@ -124,7 +124,7 @@ jobs:
           gcloud container clusters get-credentials \
             $CLUSTER_NAME \
             --zone $CLUSTER_ZONE \
-            --project $GCP_PROJECT_ID
+            --project $PROJECT_ID
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
