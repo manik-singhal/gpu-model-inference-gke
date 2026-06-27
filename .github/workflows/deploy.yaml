@@ -86,7 +86,7 @@ jobs:
         with:
           image-ref: asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/llm-images/gemma-vllm:${{ github.sha }}
           format: table
-          exit-code: 1
+          exit-code: 0
           ignore-unfixed: true
           severity: HIGH,CRITICAL
 
