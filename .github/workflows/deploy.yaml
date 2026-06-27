@@ -45,10 +45,6 @@ jobs:
     needs: lint
     runs-on: ubuntu-24.04
 
-    permissions:
-      contents: read
-      id-token: write
-
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GAR_LOCATION: asia-south1
@@ -101,10 +97,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
 
-    permissions:
-      contents: read
-      id-token: write
-
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
@@ -142,4 +134,4 @@ jobs:
           helm upgrade --install gemma-vllm ./helm/gemma-vllm \
             --set image.repository=asia-south1-docker.pkg.dev/$PROJECT_ID/llm-images/gemma-vllm \
             --set image.tag=${{ github.sha }} \
-            --set huggingface.token="${{ secrets.HF_TOKEN }}"          
+            --set hfToken="${{ secrets.HF_TOKEN }}"          
