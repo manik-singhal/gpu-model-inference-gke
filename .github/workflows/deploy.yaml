@@ -94,3 +94,52 @@ jobs:
         run: |
           docker push \
             asia-south1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}      
+
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      CLUSTER_REGION: ${{ secrets.CLUSTER_REGION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install kubectl
+        run: |
+          gcloud components install kubectl gke-gcloud-auth-plugin --quiet
+
+      - name: Get Credentials
+        run: |
+          gcloud container clusters get-credentials \
+            $CLUSTER_NAME \
+            --region $CLUSTER_REGION \
+            --project $PROJECT_ID
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy
+        run: |
+          helm upgrade --install gemma-vllm ./helm/gemma-vllm \
+            --set image.repository=asia-south1-docker.pkg.dev/$PROJECT_ID/llm-images/gemma-vllm \
+            --set image.tag=${{ github.sha }} \
+            --set huggingface.token="${{ secrets.HF_TOKEN }}"          
