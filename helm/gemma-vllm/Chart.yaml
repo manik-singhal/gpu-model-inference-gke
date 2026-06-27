@@ -1,0 +1,7 @@
+apiVersion: v2
+name: gemma-vllm
+description: Helm chart for Gemma vLLM deployment
+type: application
+
+version: 0.1.0
+appVersion: "1.0"

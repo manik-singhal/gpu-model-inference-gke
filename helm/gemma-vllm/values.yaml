@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: asia-south1-docker.pkg.dev/vaani-assignment-500510/llm-images/gemma-vllm
+  tag: v5
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: "1"
+    memory: "8Gi"
+
+  limits:
+    cpu: "2"
+    memory: "16Gi"
+    nvidia.com/gpu: 1
+
+hfToken: ""

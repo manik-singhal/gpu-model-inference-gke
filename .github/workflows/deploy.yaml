@@ -1,0 +1,37 @@
+name: Gemma GPU CI/CD
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint & Validate
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform Formatting
+        working-directory: terraform/dev
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform
+        working-directory: terraform/dev
+        run: terraform init -backend=false
+
+      - name: Validate Terraform Configuration
+        working-directory: terraform/dev
+        run: terraform validate
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint Helm Chart
+        run: helm lint helm/gemma-vllm
