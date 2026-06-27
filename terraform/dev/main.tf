@@ -31,7 +31,7 @@ module "gke" {
 
   cluster_name = var.cluster_name
   region       = var.region
-  zone   = var.zone
+  zone         = var.zone
 
   network    = module.vpc_network.network_name
   subnetwork = module.vpc_network.subnetwork_name
