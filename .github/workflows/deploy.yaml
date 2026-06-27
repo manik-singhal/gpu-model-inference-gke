@@ -134,4 +134,51 @@ jobs:
           helm upgrade --install gemma-vllm ./helm/gemma-vllm \
             --set image.repository=asia-south1-docker.pkg.dev/$PROJECT_ID/llm-images/gemma-vllm \
             --set image.tag=${{ github.sha }} \
-            --set hfToken="${{ secrets.HF_TOKEN }}"          
+            --set hfToken="${{ secrets.HF_TOKEN }}"   
+
+  smoke-test:
+    name: Smoke Test
+    needs: deploy
+    runs-on: ubuntu-24.04
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      CLUSTER_ZONE: ${{ secrets.CLUSTER_ZONE }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install kubectl
+        run: |
+          gcloud components install kubectl gke-gcloud-auth-plugin --quiet
+
+      - name: Get GKE Credentials
+        run: |
+          gcloud container clusters get-credentials \
+            $CLUSTER_NAME \
+            --zone $CLUSTER_ZONE \
+            --project $PROJECT_ID
+
+      - name: Wait for Rollout
+        run: |
+          kubectl rollout status deployment/gemma-vllm --timeout=10m
+
+      - name: Port Forward Service
+        run: |
+          kubectl port-forward svc/gemma-vllm 8000:8000 &
+          sleep 10
+
+      - name: Health Check
+        run: |
+          curl -f http://localhost:8000/health                 
